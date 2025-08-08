@@ -5,8 +5,19 @@
     <meta charset="utf-8">
 </head>
 <body>
-    <h1>Bem-vindo ao Mercadinho</h1>
-    <ul id="product-list"></ul>
+    <div class="container">
+    <h1>Bem-vindo ao Mercadinho!</h1>
+    <div class="products">
+      {% for product in products %}
+      <div class="product">
+        <h2>{{ product.name }}</h2>
+        <p>{{ product.description }}</p>
+        <p class="price">R$ {{ "%.2f"|format(product.price) }}</p>
+        <button>Adicionar ao carrinho</button>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
 
     <script>
         fetch('/api/products')
