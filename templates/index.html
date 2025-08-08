@@ -1,35 +1,35 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
-    <title>Mercadinho</title>
-    <meta charset="utf-8">
+  <meta charset="UTF-8">
+  <title>Mercadinho</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <div class="container">
+  <div class="container">
     <h1>Bem-vindo ao Mercadinho!</h1>
+    <a href="/carrinho" class="carrinho-link">🛒 Ver Carrinho</a>
     <div class="products">
       {% for product in products %}
       <div class="product">
         <h2>{{ product.name }}</h2>
         <p>{{ product.description }}</p>
         <p class="price">R$ {{ "%.2f"|format(product.price) }}</p>
-        <button>Adicionar ao carrinho</button>
+        <button onclick="adicionarCarrinho({{ product.id }}, '{{ product.name }}', {{ product.price }})">
+          Adicionar ao carrinho
+        </button>
       </div>
       {% endfor %}
     </div>
   </div>
 
-    <script>
-        fetch('/api/products')
-            .then(res => res.json())
-            .then(data => {
-                const list = document.getElementById('product-list');
-                data.forEach(prod => {
-                    const li = document.createElement('li');
-                    li.textContent = `${prod.name} - R$ ${prod.price.toFixed(2)} (${prod.description})`;
-                    list.appendChild(li);
-                });
-            });
-    </script>
+  <script>
+    function adicionarCarrinho(id, nome, preco) {
+      let carrinho = JSON.parse(localStorage.getItem("carrinho")) || [];
+      carrinho.push({ id, nome, preco });
+      localStorage.setItem("carrinho", JSON.stringify(carrinho));
+      alert(`${nome} adicionado ao carrinho!`);
+    }
+  </script>
 </body>
 </html>

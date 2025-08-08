@@ -12,6 +12,10 @@ def get_products():
     products = Product.query.all()
     return jsonify([p.serialize() for p in products])
 
+@app.route("/carrinho")
+def carrinho():
+    return render_template("carrinho.html")
+
 @app.route("/")
 def index():
     products = Product.query.all()
