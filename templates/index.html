@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mercadinho</title>
+    <meta charset="utf-8">
+</head>
+<body>
+    <h1>Bem-vindo ao Mercadinho</h1>
+    <ul id="product-list"></ul>
+
+    <script>
+        fetch('/api/products')
+            .then(res => res.json())
+            .then(data => {
+                const list = document.getElementById('product-list');
+                data.forEach(prod => {
+                    const li = document.createElement('li');
+                    li.textContent = `${prod.name} - R$ ${prod.price.toFixed(2)} (${prod.description})`;
+                    list.appendChild(li);
+                });
+            });
+    </script>
+</body>
+</html>
