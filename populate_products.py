@@ -1,15 +1,33 @@
-from app import app, db
-from models import Product
+from app import app
+from models import db, Product
+
+produtos = [
+    {
+        "name": "Pão De Mel",
+        "description": "Doce De Leite",
+        "price": 7.50,
+        "image_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTDoyUWkYEi-IeTrkzX7C35YwmCZaIvwIQNdg&s"
+    },
+    {
+        "name": "Bolacha",
+        "description": "Maria",
+        "price": 3.50,
+        "image_url": "https://w7.pngwing.com/pngs/333/997/png-transparent-cracker-biscuits-marie-biscuit-flourless-chocolate-cake-biscoito-baked-goods-food-nutrition-thumbnail.png"
+    },
+    {
+        "name": "Trufa",
+        "description": "Morango",
+        "price": 5.75,
+        "image_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRV5AWG-c9Mpk1ndjT29QE3GaNFrrtxduJRqw&s"
+    }
+]
 
 with app.app_context():
-    db.create_all()
+    for data in produtos:
+        produto = Product.query.filter_by(name=data["name"]).first()
+        if not produto:
+            produto = Product(**data)
+            db.session.add(produto)
+    db.session.commit()
 
-    if not Product.query.first():
-        p1 = Product(name="Pão De Mel", description="Doce De Leite", price=7.50)
-        p2 = Product(name="Bolacha", description="Maria", price=3.50)
-        p3 = Product(name="Trufa", description="Morango", price=5.75)
-        db.session.add_all([p1, p2, p3])
-        db.session.commit()
-        print("Produtos criados com sucesso!")
-    else:
-        print("Produtos já existem.")
+print("Produtos adicionados com sucesso!")
