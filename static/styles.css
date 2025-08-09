@@ -30,7 +30,7 @@ h1 {
   position: fixed;
   top: 20px;
   right: 20px;
-  background-color: #27ae60;
+  background-color: #7d41a5;
   color: white;
   padding: 12px 18px;
   border-radius: 8px;
@@ -47,7 +47,7 @@ h1 {
 }
 
 .carrinho-link:hover {
-  background-color: #219150;
+  background-color: #7d41a5;
 }
 
 /* Grid dos produtos */
@@ -99,13 +99,13 @@ h1 {
 .product .price {
   font-size: 1.1rem;
   font-weight: bold;
-  color: #27ae60;
+  color: #7d41a5;
   margin-bottom: 15px;
 }
 
 /* Botão */
 button {
-  background-color: #27ae60;
+  background-color: #7d41a5;
   color: white;
   border: none;
   padding: 12px 18px;
@@ -117,14 +117,14 @@ button {
 }
 
 button:hover {
-  background-color: #219150;
+  background-color: #7d41a5;
 }
 
 .total {
   font-size: 1.3rem;
   font-weight: bold;
   margin-top: 20px;
-  color: #27ae60;
+  color: #7d41a5;
   text-align: right;
 }
 
