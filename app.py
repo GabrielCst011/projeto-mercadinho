@@ -50,16 +50,33 @@ def register():
     if request.method == 'POST':
         cpf = request.form.get('cpf')
         password = request.form.get('password')
+
+        if not cpf or not password:
+            flash('CPF e senha são obrigatórios.', 'error')
+            return redirect(url_for('register'))
+
+        if len(cpf) != 11 or not cpf.isdigit():
+            flash('CPF deve conter exatamente 11 números.', 'error')
+            return redirect(url_for('register'))
+
         if User.query.filter_by(cpf=cpf).first():
             flash('CPF já cadastrado.', 'error')
             return redirect(url_for('register'))
-        password_hash = generate_password_hash(password)
-        novo_usuario = User(cpf=cpf, password_hash=password_hash, is_admin=False)
-        db.session.add(novo_usuario)
-        db.session.commit()
-        flash('Cadastro realizado com sucesso! Faça login.', 'success')
-        return redirect(url_for('login'))
+
+        try:
+            password_hash = generate_password_hash(password)
+            novo_usuario = User(cpf=cpf, password_hash=password_hash, is_admin=False)
+            db.session.add(novo_usuario)
+            db.session.commit()
+            flash('Cadastro realizado com sucesso! Faça login.', 'success')
+            return redirect(url_for('login'))
+        except Exception as e:
+            print(f"Erro ao cadastrar usuário: {e}")
+            flash('Erro interno. Tente novamente.', 'error')
+            return redirect(url_for('register'))
+
     return render_template('register.html')
+
 
 @app.route("/")
 def index():
