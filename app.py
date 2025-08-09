@@ -8,13 +8,22 @@ from functools import wraps
 
 app = Flask(__name__)
 
-app.secret_key = os.getenv("SECRET_KEY" , "uma_chave_super_secreta_aleatoria_123!")
-
+# Carrega configurações da sua classe Config
 app.config.from_object(Config)
+
+# Garante que a SECRET_KEY esteja definida
+secret_key = os.getenv("SECRET_KEY")
+if not secret_key:
+    raise RuntimeError("A variável de ambiente SECRET_KEY não está definida! Defina antes de rodar o app.")
+app.secret_key = secret_key
+
+# Admin CPF (para permissões administrativas)
+ADMIN_CPF = os.getenv("ADMIN_CPF", "")
+
+# Inicializa o banco com a app
 db.init_app(app)
 
-ADMIN_CPF = os.getenv("ADMIN_CPF")
-
+# Decorator para rotas que precisam de admin
 def admin_required(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
