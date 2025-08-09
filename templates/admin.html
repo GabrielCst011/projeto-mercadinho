@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin - Mercadinho</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <style>
+    body {
+      background-color: #f0f2f5;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 20px;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 25px;
+      color: #2c3e50;
+    }
+    form {
+      background: white;
+      padding: 20px;
+      max-width: 400px;
+      margin: 0 auto 40px auto;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    form input, form button {
+      width: 100%;
+      padding: 12px 10px;
+      margin: 8px 0;
+      font-size: 1rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+    form button {
+      background-color: #27ae60;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      font-weight: bold;
+    }
+    form button:hover {
+      background-color: #219150;
+    }
+    .produtos-lista {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    th, td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+    th {
+      background-color: #27ae60;
+      color: white;
+    }
+    tr:hover {
+      background-color: #f1f9f6;
+    }
+    .btn-delete {
+      background-color: #e74c3c;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    .btn-delete:hover {
+      background-color: #c0392b;
+    }
+    .flash-message {
+      max-width: 800px;
+      margin: 10px auto;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-weight: bold;
+      color: white;
+      text-align: center;
+    }
+    .flash-message.success {
+      background-color: #27ae60;
+    }
+    .flash-message.error {
+      background-color: #e74c3c;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Administração de Produtos</h1>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="flash-message {{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <form method="POST" action="{{ url_for('admin') }}">
+    <input type="text" name="name" placeholder="Nome do Produto" required />
+    <input type="text" name="description" placeholder="Descrição" />
+    <input type="number" step="0.01" name="price" placeholder="Preço (ex: 12.50)" required />
+    <input type="url" name="image_url" placeholder="URL da Imagem (opcional)" />
+    <button type="submit">Adicionar Produto</button>
+  </form>
+
+  <div class="produtos-lista">
+    <table>
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Descrição</th>
+          <th>Preço</th>
+          <th>Imagem</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for produto in produtos %}
+        <tr>
+          <td>{{ produto.name }}</td>
+          <td>{{ produto.description }}</td>
+          <td>R$ {{ "%.2f"|format(produto.price) }}</td>
+          <td>
+            {% if produto.image_url %}
+              <img src="{{ produto.image_url }}" alt="{{ produto.name }}" style="width: 80px; height: 50px; object-fit: cover; border-radius: 5px;">
+            {% else %}
+              ---
+            {% endif %}
+          </td>
+          <td>
+            <form method="POST" action="{{ url_for('delete_product', product_id=produto.id) }}" onsubmit="return confirm('Deseja realmente excluir este produto?');">
+              <button class="btn-delete" type="submit">Excluir</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</body>
+</html>
