@@ -1,25 +1,104 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Mercadinho</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+  <style>
+    .btn-login, .btn-logout, .btn-admin, .carrinho-link {
+      background-color: #7d41a5;
+      color: white;
+      padding: 8px 14px;
+      border-radius: 6px;
+      text-decoration: none;
+      margin-left: 10px;
+      font-weight: 600;
+      transition: background-color 0.3s ease;
+    }
+    .btn-login:hover, .btn-logout:hover, .btn-admin:hover, .carrinho-link:hover {
+      background-color: #5c2e78;
+    }
+    .auth-links {
+      text-align: right;
+      margin-bottom: 20px;
+    }
+    .products {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+    .product {
+      background: white;
+      border-radius: 12px;
+      padding: 15px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      text-align: center;
+      transition: transform 0.2s ease;
+    }
+    .product:hover {
+      transform: translateY(-5px);
+    }
+    .product-image {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+    .price {
+      color: #27ae60;
+      font-weight: bold;
+      margin: 10px 0;
+    }
+    button {
+      background-color: #7d41a5;
+      border: none;
+      color: white;
+      padding: 10px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #5c2e78;
+    }
+    .header-links {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
+    <div class="header-links">
+      {% if session.get('user_cpf') %}
+        <span>Olá, {{ session.get('user_cpf') }}</span>
+        {% if session.get('is_admin') %}
+          <a href="{{ url_for('admin') }}" class="btn-admin">Painel Admin</a>
+        {% endif %}
+        <a href="{{ url_for('logout') }}" class="btn-logout">Sair</a>
+      {% else %}
+        <a href="{{ url_for('login') }}" class="btn-login">Login</a>
+      {% endif %}
+      <a href="{{ url_for('carrinho') }}" class="carrinho-link">🛒 Carrinho</a>
+    </div>
+
     <h1>Bem-vindo ao Mercadinho!</h1>
+    
     <div class="products">
       {% for product in products %}
-      <div class="product">
-  <img src="{{ product.image_url }}" alt="{{ product.name }}" class="product-image">
-  <h2>{{ product.name }}</h2>
-  <p>{{ product.description }}</p>
-  <p class="price">R$ {{ "%.2f"|format(product.price) }}</p>
-  <button onclick="adicionarCarrinho({{ product.id }}, '{{ product.name }}', {{ product.price }})">
-    Adicionar ao carrinho
-  </button>
-</div>
-
+        <div class="product">
+          <img src="{{ product.image_url }}" alt="{{ product.name }}" class="product-image" />
+          <h2>{{ product.name }}</h2>
+          <p>{{ product.description }}</p>
+          <p class="price">R$ {{ "%.2f"|format(product.price) }}</p>
+          <button onclick="adicionarCarrinho({{ product.id }}, '{{ product.name }}', {{ product.price }})">
+            Adicionar ao carrinho
+          </button>
+        </div>
       {% endfor %}
     </div>
   </div>
@@ -33,6 +112,4 @@
     }
   </script>
 </body>
-<a href="/carrinho" class="carrinho-link">🛒 Carrinho</a>
-
 </html>

@@ -1,3 +1,4 @@
+from werkzeug.security import generate_password_hash, check_password_hash
 from db import db
 
 class Product(db.Model):
@@ -15,3 +16,12 @@ class Product(db.Model):
             "price": self.price,
             "image_url": self.image_url
         }
+
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    cpf = db.Column(db.String(11), unique=True, nullable=False)
+    password_hash = db.Column(db.String(128), nullable=False)
+    is_admin = db.Column(db.Boolean, default=False)
+    
+    def __repr__(self):
+        return f'<User {self.cpf}>'

@@ -1,23 +1,70 @@
-from flask import Flask, jsonify, render_template, request, redirect, url_for, flash, abort, session
+from flask import Flask, jsonify, render_template, request, redirect, url_for, flash, session
 from config import Config
 from db import db
-from models import Product
+from models import Product, User
+from werkzeug.security import generate_password_hash, check_password_hash
 import os
+from functools import wraps
 
 app = Flask(__name__)
 app.config.from_object(Config)
 app.secret_key = os.getenv("SECRET_KEY")
+ADMIN_CPF = os.getenv("ADMIN_CPF")  # CPF do admin vindo do ambiente
+
 db.init_app(app)
 
 def admin_required(func):
-    from functools import wraps
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if not session.get("is_admin"):
-            flash("Acesso negado.", "error")
-            return redirect(url_for("index"))
+        if not session.get('is_admin'):
+            flash('Acesso negado.', 'error')
+            return redirect(url_for('index'))
         return func(*args, **kwargs)
     return wrapper
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        cpf = request.form.get('cpf')
+        password = request.form.get('password')
+        user = User.query.filter_by(cpf=cpf).first()
+        if user and check_password_hash(user.password_hash, password):
+            session['user_cpf'] = user.cpf
+            # Define admin se cpf bate com o cpf do admin no ambiente
+            session['is_admin'] = (user.cpf == ADMIN_CPF)
+            flash('Login realizado com sucesso!', 'success')
+            return redirect(url_for('index'))
+        else:
+            flash('CPF ou senha incorretos.', 'error')
+            return redirect(url_for('login'))
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    flash('Você saiu da sessão.', 'success')
+    return redirect(url_for('index'))
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        cpf = request.form.get('cpf')
+        password = request.form.get('password')
+        if User.query.filter_by(cpf=cpf).first():
+            flash('CPF já cadastrado.', 'error')
+            return redirect(url_for('register'))
+        password_hash = generate_password_hash(password)
+        novo_usuario = User(cpf=cpf, password_hash=password_hash, is_admin=False)
+        db.session.add(novo_usuario)
+        db.session.commit()
+        flash('Cadastro realizado com sucesso! Faça login.', 'success')
+        return redirect(url_for('login'))
+    return render_template('register.html')
+
+@app.route("/")
+def index():
+    products = Product.query.all()
+    return render_template("index.html", products=products)
 
 @app.route("/api/products")
 def get_products():
@@ -27,17 +74,6 @@ def get_products():
 @app.route("/carrinho")
 def carrinho():
     return render_template("carrinho.html")
-
-@app.route("/")
-def index():
-    products = Product.query.all()
-    return render_template("index.html", products=products)
-
-@app.route("/login-admin")
-def login_admin():
-    session["is_admin"] = True
-    flash("Logado como admin.", "success")
-    return redirect(url_for("admin"))
 
 @app.route("/admin", methods=["GET", "POST"])
 @admin_required
