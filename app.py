@@ -8,7 +8,7 @@ from functools import wraps
 
 app = Flask(__name__)
 
-app.secret_key = os.getenv("SECRET_KEY") or "uma-chave-secreta-super-segura-por-enquanto"
+app.secret_key = os.getenv("SECRET_KEY")
 
 app.config.from_object(Config)
 db.init_app(app)
