@@ -1,103 +1,34 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <title>Cadastro - Mercadinho</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f5f5f5;
-      padding: 40px;
-      display: flex;
-      justify-content: center;
-    }
-    .register-container {
-      background: white;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      width: 320px;
-      text-align: center;
-    }
-    h1 {
-      color: #7d41a5;
-      margin-bottom: 20px;
-    }
-    label {
-      display: block;
-      margin: 15px 0 5px;
-      text-align: left;
-    }
-    input {
-      width: 100%;
-      padding: 8px 10px;
-      font-size: 1rem;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      box-sizing: border-box;
-    }
-    button {
-      margin-top: 20px;
-      width: 100%;
-      padding: 10px;
-      background-color: #7d41a5;
-      border: none;
-      color: white;
-      font-weight: bold;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 1rem;
-    }
-    button:hover {
-      background-color: #5a2e7d;
-    }
-    .msg {
-      margin-top: 15px;
-      font-size: 0.9rem;
-    }
-    .msg.error {
-      color: #e74c3c;
-    }
-    .msg.success {
-      color: #27ae60;
-    }
-    p.login-link {
-      margin-top: 20px;
-      font-size: 0.9rem;
-    }
-    p.login-link a {
-      color: #7d41a5;
-      text-decoration: none;
-      font-weight: bold;
-    }
-    p.login-link a:hover {
-      text-decoration: underline;
-    }
-  </style>
-</head>
-<body>
-  <div class="register-container">
-    <h1>Cadastro</h1>
-    <form method="POST">
-      <label for="cpf">CPF</label>
-      <input type="text" name="cpf" id="cpf" maxlength="11" required pattern="\d{11}" title="Digite 11 números do CPF" autofocus>
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        cpf = request.form.get('cpf')
+        password = request.form.get('password')
 
-      <label for="password">Senha</label>
-      <input type="password" name="password" id="password" required>
+        # Validações básicas
+        if not cpf or not password:
+            flash('CPF e senha são obrigatórios.', 'error')
+            return redirect(url_for('register'))
+        
+        if len(cpf) != 11 or not cpf.isdigit():
+            flash('CPF deve conter exatamente 11 números.', 'error')
+            return redirect(url_for('register'))
 
-      <button type="submit">Cadastrar</button>
-    </form>
-    <p class="login-link">Já tem conta? <a href="{{ url_for('login') }}">Faça login aqui</a></p>
+        # Verifica se já existe usuário com o CPF
+        if User.query.filter_by(cpf=cpf).first():
+            flash('CPF já cadastrado.', 'error')
+            return redirect(url_for('register'))
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        <div class="msg-container">
-          {% for category, message in messages %}
-            <p class="msg {{ category }}">{{ message }}</p>
-          {% endfor %}
-        </div>
-      {% endif %}
-    {% endwith %}
-  </div>
-</body>
-</html>
+        try:
+            password_hash = generate_password_hash(password)
+            novo_usuario = User(cpf=cpf, password_hash=password_hash, is_admin=False)
+            db.session.add(novo_usuario)
+            db.session.commit()
+            flash('Cadastro realizado com sucesso! Faça login.', 'success')
+            return redirect(url_for('login'))
+        except Exception as e:
+            # Loga o erro no console para debug (remova ou adapte em produção)
+            print(f"Erro ao cadastrar usuário: {e}")
+            flash('Erro interno. Tente novamente.', 'error')
+            return redirect(url_for('register'))
+
+    return render_template('register.html')
