@@ -6,11 +6,8 @@ import os
 
 app = Flask(__name__)
 app.config.from_object(Config)
-db.init_app(app)
-
-app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY")
-
+db.init_app(app)
 
 def admin_required(func):
     from functools import wraps
