@@ -30,7 +30,6 @@ def login():
         user = User.query.filter_by(cpf=cpf).first()
         if user and check_password_hash(user.password_hash, password):
             session['user_cpf'] = user.cpf
-            # Define admin se cpf bate com o cpf do admin no ambiente
             session['is_admin'] = (user.cpf == ADMIN_CPF)
             flash('Login realizado com sucesso!', 'success')
             return redirect(url_for('index'))
@@ -133,3 +132,4 @@ if __name__ == "__main__":
     with app.app_context():
         db.create_all()
     app.run(debug=True)
+
