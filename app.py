@@ -7,11 +7,13 @@ import os
 from functools import wraps
 
 app = Flask(__name__)
-app.config.from_object(Config)
-app.secret_key = os.getenv("SECRET_KEY")
-ADMIN_CPF = os.getenv("ADMIN_CPF")  # CPF do admin vindo do ambiente
 
+app.secret_key = os.getenv("SECRET_KEY") or "uma-chave-secreta-super-segura-por-enquanto"
+
+app.config.from_object(Config)
 db.init_app(app)
+
+ADMIN_CPF = os.getenv("ADMIN_CPF")
 
 def admin_required(func):
     @wraps(func)
@@ -76,7 +78,6 @@ def register():
 
     return render_template('register.html')
 
-
 @app.route("/")
 def index():
     products = Product.query.all()
@@ -132,4 +133,3 @@ if __name__ == "__main__":
     with app.app_context():
         db.create_all()
     app.run(debug=True)
-
