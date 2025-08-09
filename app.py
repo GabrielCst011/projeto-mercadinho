@@ -2,10 +2,15 @@ from flask import Flask, jsonify, render_template, request, redirect, url_for, f
 from config import Config
 from db import db
 from models import Product
+import os
 
 app = Flask(__name__)
 app.config.from_object(Config)
 db.init_app(app)
+
+app = Flask(__name__)
+app.secret_key = os.getenv("SECRET_KEY")
+
 
 def admin_required(func):
     from functools import wraps
