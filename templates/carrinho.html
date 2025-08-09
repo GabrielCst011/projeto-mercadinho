@@ -2,38 +2,56 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Carrinho</title>
+  <title>Seu Carrinho - Mercadinho</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
+  <a href="/" class="carrinho-link">← Voltar para produtos</a>
+
   <div class="container">
     <h1>Seu Carrinho</h1>
-    <ul id="lista-carrinho"></ul>
-    <p><strong>Total:</strong> R$ <span id="total">0.00</span></p>
-    <button onclick="finalizarCompra()">Finalizar Compra</button>
-    <br><br>
-    <a href="/">← Voltar à loja</a>
+    <div id="carrinho-lista"></div>
+    <div id="carrinho-total" class="total"></div>
   </div>
 
   <script>
-    const carrinho = JSON.parse(localStorage.getItem("carrinho")) || [];
-    const lista = document.getElementById("lista-carrinho");
-    let total = 0;
+    function renderCarrinho() {
+      const carrinho = JSON.parse(localStorage.getItem("carrinho")) || [];
+      const lista = document.getElementById("carrinho-lista");
+      const totalEl = document.getElementById("carrinho-total");
+      lista.innerHTML = "";
 
-    carrinho.forEach(item => {
-      const li = document.createElement("li");
-      li.textContent = `${item.nome} - R$ ${item.preco.toFixed(2)}`;
-      lista.appendChild(li);
-      total += item.preco;
-    });
+      if (carrinho.length === 0) {
+        lista.innerHTML = "<p>Seu carrinho está vazio.</p>";
+        totalEl.innerHTML = "";
+        return;
+      }
 
-    document.getElementById("total").textContent = total.toFixed(2);
+      let total = 0;
 
-    function finalizarCompra() {
-      alert("Compra finalizada! Em breve você receberá a confirmação.");
-      localStorage.removeItem("carrinho");
-      window.location.href = "/";
+      carrinho.forEach((item, index) => {
+        total += item.preco;
+
+        const itemEl = document.createElement("div");
+        itemEl.classList.add("carrinho-item");
+        itemEl.innerHTML = `
+          <span>${item.nome} - R$ ${item.preco.toFixed(2)}</span>
+          <button onclick="removerDoCarrinho(${index})">Remover</button>
+        `;
+        lista.appendChild(itemEl);
+      });
+
+      totalEl.textContent = `Total: R$ ${total.toFixed(2)}`;
     }
+
+    function removerDoCarrinho(index) {
+      const carrinho = JSON.parse(localStorage.getItem("carrinho")) || [];
+      carrinho.splice(index, 1);
+      localStorage.setItem("carrinho", JSON.stringify(carrinho));
+      renderCarrinho();
+    }
+
+    renderCarrinho();
   </script>
 </body>
 </html>
