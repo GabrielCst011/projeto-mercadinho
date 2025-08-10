@@ -1,8 +1,12 @@
 import os
 
 class Config:
-    SQLALCHEMY_DATABASE_URI = os.getenv(
-        "DATABASE_URL",
-        "postgresql://admin:Gjwe4wYI6jHiYTL0vggfTMPHCqadGAV0@dpg-d2ajvvndiees73ds8gr0-a.oregon-postgres.render.com/db_mercadinho"
-    )
+    SECRET_KEY = os.getenv("SECRET_KEY", "dev_key")  # chave default para local
+    ADMIN_CPF = os.getenv("ADMIN_CPF", "")
+    
+    uri = os.getenv("DATABASE_URL")
+    if uri and uri.startswith("postgres://"):
+        uri = uri.replace("postgres://", "postgresql://", 1)
+    SQLALCHEMY_DATABASE_URI = uri
+
     SQLALCHEMY_TRACK_MODIFICATIONS = False
