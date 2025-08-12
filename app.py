@@ -1,29 +1,34 @@
+import os
 from flask import Flask, jsonify, render_template, request, redirect, url_for, flash, session
 from config import Config
 from db import db
 from models import Product, User
 from werkzeug.security import generate_password_hash, check_password_hash
-import os
 from functools import wraps
+from twilio.rest import Client
+import random
+
+TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
+TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
+TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
+
+if not all([TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER]):
+    raise RuntimeError("Configure as variáveis TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN e TWILIO_PHONE_NUMBER")
+
+twilio_client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
 app = Flask(__name__)
-
-# Carrega configurações da sua classe Config
 app.config.from_object(Config)
 
-# Garante que a SECRET_KEY esteja definida
 secret_key = os.getenv("SECRET_KEY")
 if not secret_key:
     raise RuntimeError("A variável de ambiente SECRET_KEY não está definida! Defina antes de rodar o app.")
 app.secret_key = secret_key
 
-# Admin CPF (para permissões administrativas)
 ADMIN_CPF = os.getenv("ADMIN_CPF", "")
 
-# Inicializa o banco com a app
 db.init_app(app)
 
-# Decorator para rotas que precisam de admin
 def admin_required(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -55,37 +60,89 @@ def logout():
     flash('Você saiu da sessão.', 'success')
     return redirect(url_for('index'))
 
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
         cpf = request.form.get('cpf')
+        name = request.form.get('name')
+        telefone = request.form.get('telefone')
         password = request.form.get('password')
 
-        if not cpf or not password:
-            flash('CPF e senha são obrigatórios.', 'error')
+        # Validações
+        if not cpf or not name or not telefone or not password:
+            flash('Preencha todos os campos.', 'error')
             return redirect(url_for('register'))
 
         if len(cpf) != 11 or not cpf.isdigit():
-            flash('CPF deve conter exatamente 11 números.', 'error')
+            flash('CPF deve conter 11 números.', 'error')
             return redirect(url_for('register'))
 
         if User.query.filter_by(cpf=cpf).first():
             flash('CPF já cadastrado.', 'error')
             return redirect(url_for('register'))
 
+        # Gera código e salva dados temporariamente na sessão
+        codigo = f"{random.randint(100000, 999999)}"
+        session['cadastro_temp'] = {
+            'cpf': cpf,
+            'name': name,
+            'telefone': telefone,
+            'password': password,
+            'codigo': codigo
+        }
+
+        # Envia SMS
         try:
-            password_hash = generate_password_hash(password)
-            novo_usuario = User(cpf=cpf, password_hash=password_hash, is_admin=False)
-            db.session.add(novo_usuario)
-            db.session.commit()
-            flash('Cadastro realizado com sucesso! Faça login.', 'success')
-            return redirect(url_for('login'))
+            twilio_client.messages.create(
+                body=f"Seu código de confirmação é: {codigo}",
+                from_=TWILIO_PHONE_NUMBER,
+                to=telefone
+            )
+            flash('Código enviado para seu telefone.', 'success')
+            return redirect(url_for('confirm_code'))
         except Exception as e:
-            print(f"Erro ao cadastrar usuário: {e}")
-            flash('Erro interno. Tente novamente.', 'error')
+            print(f"Erro ao enviar SMS: {e}")
+            flash('Erro ao enviar código SMS. Tente novamente.', 'error')
             return redirect(url_for('register'))
 
     return render_template('register.html')
+
+
+@app.route('/confirm_code', methods=['GET', 'POST'])
+def confirm_code():
+    cadastro_temp = session.get('cadastro_temp')
+    if not cadastro_temp:
+        flash('Nenhum cadastro pendente. Faça o cadastro novamente.', 'error')
+        return redirect(url_for('register'))
+
+    if request.method == 'POST':
+        codigo_digitado = request.form.get('codigo')
+        if codigo_digitado == cadastro_temp['codigo']:
+            # Cria usuário no banco
+            try:
+                password_hash = generate_password_hash(cadastro_temp['password'])
+                novo_usuario = User(
+                    cpf=cadastro_temp['cpf'],
+                    name=cadastro_temp['name'],
+                    telefone=cadastro_temp['telefone'],
+                    password_hash=password_hash,
+                    is_admin=False
+                )
+                db.session.add(novo_usuario)
+                db.session.commit()
+                flash('Cadastro confirmado! Faça login.', 'success')
+                session.pop('cadastro_temp')
+                return redirect(url_for('login'))
+            except Exception as e:
+                print(f"Erro ao salvar usuário: {e}")
+                flash('Erro interno no cadastro. Tente novamente.', 'error')
+                return redirect(url_for('register'))
+        else:
+            flash('Código incorreto. Tente novamente.', 'error')
+            return redirect(url_for('confirm_code'))
+
+    return render_template('confirm_code.html')
 
 @app.route("/")
 def index():

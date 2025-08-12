@@ -6,7 +6,7 @@ class Product(db.Model):
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=False)
     price = db.Column(db.Float, nullable=False)
-    image_url = db.Column(db.String(255), nullable=True)  # <- nova coluna
+    image_url = db.Column(db.String(255), nullable=True)
 
     def serialize(self):
         return {
@@ -20,8 +20,7 @@ class Product(db.Model):
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     cpf = db.Column(db.String(11), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128), nullable=False)
+    name = db.Column(db.String(150), nullable=False)       
+    telefone = db.Column(db.String(20), nullable=False) 
+    password_hash = db.Column(db.String(255), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
-    
-    def __repr__(self):
-        return f'<User {self.cpf}>'

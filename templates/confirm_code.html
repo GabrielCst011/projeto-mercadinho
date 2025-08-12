@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Cadastro - Mercadinho</title>
+  <title>Confirmar Código - Mercadinho</title>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -11,7 +11,7 @@
       display: flex;
       justify-content: center;
     }
-    .register-container {
+    .container {
       background: white;
       padding: 30px;
       border-radius: 10px;
@@ -76,27 +76,23 @@
   </style>
 </head>
 <body>
-  <div class="register-container">
-    <h1>Cadastro</h1>
-      <form method="POST">
-      <input type="text" name="cpf" placeholder="CPF (11 dígitos)" required>
-      <input type="text" name="name" placeholder="Nome completo" required>
-      <input type="text" name="telefone" placeholder="Telefone (+55XXXXXXXXXXX)" required>
-      <input type="password" name="password" placeholder="Senha" required>
-      <button type="submit">Cadastrar</button>
-    </form>
-
-    <p class="login-link">Já tem conta? <a href="{{ url_for('login') }}">Faça login aqui</a></p>
-
+  <div class="container">
+    <h1>Confirme seu cadastro</h1>
+    
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
-        <div class="msg-container">
-          {% for category, message in messages %}
-            <p class="msg {{ category }}">{{ message }}</p>
-          {% endfor %}
-        </div>
+        {% for category, message in messages %}
+          <div class="msg {{ category }}">{{ message }}</div>
+        {% endfor %}
       {% endif %}
     {% endwith %}
+    
+    <form method="POST" novalidate>
+      <input type="text" name="codigo" placeholder="Digite o código enviado por SMS" required autofocus>
+      <button type="submit">Confirmar cadastro</button>
+    </form>
+
+    <p class="login-link">Já confirmou? <a href="{{ url_for('login') }}">Faça login aqui</a></p>
   </div>
 </body>
 </html>
